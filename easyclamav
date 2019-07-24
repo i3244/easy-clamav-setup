@@ -1,0 +1,79 @@
+#!/bin/bash
+#
+# @(#) easyclamav ver.0.1.1 2019.07.22
+# @author i3244
+#
+# Description:
+#   A simple virus scanning script using clamscan command.
+#
+
+readonly LOG_TAG=$(basename "${0}")
+readonly HOME_DIR=$(dirname "${0}")
+
+source "${HOME_DIR}/easyclamav.conf"
+if ((${?} != 0)); then
+  /bin/logger -p cron.err -t ${LOG_TAG} "'easyclamav.conf' not found."
+  exit 1
+fi
+
+info_log=$(mktemp)
+err_log=$(mktemp)
+
+# Updating ClamAV packages.
+/bin/logger -p cron.info -t ${LOG_TAG} "Updating clamav packages."
+if yum -y --enablerepo=epel update clamav* 1>"${info_log}" 2>"${err_log}"; then
+  /bin/logger -p cron.info -t ${LOG_TAG} -f "${info_log}"
+  /bin/logger -p cron.info -t ${LOG_TAG} "Finished updating clamav packages."
+else
+  /bin/logger -p cron.err -t ${LOG_TAG} -f "${err_log}"
+  /bin/logger -p cron.err -t ${LOG_TAG} "Failed to update clamav packages."
+fi
+
+# Updating virus database.
+/bin/logger -p cron.info -t ${LOG_TAG} "Updating virus database."
+if /bin/freshclam 1>"${info_log}" 2>"${err_log}"; then
+  /bin/logger -p cron.info -t ${LOG_TAG} -f "${info_log}"
+  /bin/logger -p cron.info -t ${LOG_TAG} "Finished updating virus database."
+else
+  /bin/logger -p cron.err -t ${LOG_TAG} -f "${err_log}"
+  /bin/logger -p cron.err -t ${LOG_TAG} "Failed to update virus database."
+fi
+
+# Extract excluding list.
+exclude_list="${HOME_DIR}/exclude_list"
+if [[ -e "${exclude_list}" ]]; then
+  exclude_opt=$(grep   "^/.*/$"    "${exclude_list}" | sed -e 's/^\(.*\)$/ --exclude-dir=\1/g' | tr -d "\n")
+  exclude_opt+=$(grep  "^/.*[^/]$" "${exclude_list}" | sed -e 's/^\(.*\)$/ --exclude=\1/g'     | tr -d "\n")
+  /bin/logger -p cron.info -t ${LOG_TAG} "exclude_opt = '${exclude_opt}'"
+else
+  /bin/logger -p cron.err -t ${LOG_TAG} "'${exclude_list}' not found."
+fi
+
+# Execute scanning.
+mkdir -p "${MOVE_DIRECTORY}"
+/bin/logger -p cron.info -t ${LOG_TAG} "Scanning virus."
+/bin/clamscan \
+    --max-filesize=${MAX_FILESIZE} \
+    --max-scansize=${MAX_SCANSIZE} \
+    --move="${MOVE_DIRECTORY}" --infected --recursive ${exclude_opt} \
+    "${SCAN_DIRECTORY}" 1>"${info_log}" 2>"${err_log}"
+return_code=${?}
+
+# Write stdout to syslog.
+/bin/logger -p cron.info -t ${LOG_TAG} -f "${info_log}"
+
+if ((return_code == 0)); then
+  # Write normal log to syslog.
+  /bin/logger -p cron.info  -t ${LOG_TAG} "Completed, no virus found."
+elif ((return_code == 1)); then
+  # Write error log when viruses found.
+  /bin/logger -p cron.err   -t ${LOG_TAG} -f "${err_log}"
+  /bin/logger -p cron.err   -t ${LOG_TAG} "Viruses found."
+else
+  # Write error log when scanning failed.
+  /bin/logger -p cron.err   -t ${LOG_TAG} -f "${err_log}"
+  /bin/logger -p cron.err   -t ${LOG_TAG} "Return code: ${return_code}"
+  /bin/logger -p cron.err   -t ${LOG_TAG} "Failed to scan."
+fi
+
+exit 0

@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# @(#) easyclamav_setup_test.sh ver.0.1.4 2019.07.24
+# @(#) easyclamav_setup_test.sh ver.0.1.5 2019.07.24
 # @author i3244
 
 # *****************************************************************************
@@ -120,11 +120,11 @@ function test_set_local_db_url_not_japanese() {
 # *****************************************************************************
 function test_set_proxy_settings_proto_user_pass_server_port_slash() {
   local conf_file="/etc/freshclam.conf"
-  local local_url="http://testuser:testpass@testserver:8888/"
+  local proxy_env="http://testuser:testpass@testserver:8888/"
 
   set_proxy_settings \
       "${conf_file}" \
-      "${local_url}"
+      "${proxy_env}"
 
   assertTrue "set_proxy_settings failed." ${?}
 
@@ -150,7 +150,7 @@ function test_set_proxy_settings_proto_user_pass_server_port_slash() {
 
   set_proxy_settings \
       "${conf_file}" \
-      "${local_url}"
+      "${proxy_env}"
 
   assertTrue "set_proxy_settings failed." ${?}
 
@@ -171,11 +171,11 @@ function test_set_proxy_settings_proto_user_pass_server_port_slash() {
 
 function test_set_proxy_settings_user_pass_server_port() {
   local conf_file="/etc/freshclam.conf"
-  local local_url="testuser:testpass@testserver:8888"
+  local proxy_env="testuser:testpass@testserver:8888"
 
   set_proxy_settings \
       "${conf_file}" \
-      "${local_url}"
+      "${proxy_env}"
 
   assertTrue "set_proxy_settings failed." ${?}
 
@@ -201,7 +201,7 @@ function test_set_proxy_settings_user_pass_server_port() {
 
   set_proxy_settings \
       "${conf_file}" \
-      "${local_url}"
+      "${proxy_env}"
 
   assertTrue "set_proxy_settings failed." ${?}
 
@@ -212,11 +212,11 @@ function test_set_proxy_settings_user_pass_server_port() {
 
 function test_set_proxy_settings_server_port() {
   local conf_file="/etc/freshclam.conf"
-  local local_url="testserver:8888"
+  local proxy_env="testserver:8888"
 
   set_proxy_settings \
       "${conf_file}" \
-      "${local_url}"
+      "${proxy_env}"
 
   assertTrue "set_proxy_settings failed." ${?}
 
@@ -234,7 +234,7 @@ function test_set_proxy_settings_server_port() {
 
   set_proxy_settings \
       "${conf_file}" \
-      "${local_url}"
+      "${proxy_env}"
 
   assertTrue "set_proxy_settings failed." ${?}
 
