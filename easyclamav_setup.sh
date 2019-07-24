@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# @(#) easyclamav_setup.sh ver.0.1.5 2019.07.24
+# @(#) easyclamav_setup.sh ver.0.1.6 2019.07.25
 # @author i3244
 #
 # Description:
@@ -184,7 +184,7 @@ if [[ ${EASYCLAMAV_STATUS} != "stop" ]]; then
   chmod -v +x "${EASYCLAMAV_HOME}/easyclamav"
   echo "--------"
   ls -l "${EASYCLAMAV_HOME}"
-  echo "--------"
+  echo -e "--------\n"
 
   # Create excluding list.
   exclude_list="${EASYCLAMAV_HOME}/exclude_list"
@@ -196,7 +196,7 @@ if [[ ${EASYCLAMAV_STATUS} != "stop" ]]; then
   echo "${MOVE_DIRECTORY}/" >>"${exclude_list}"
   echo "--------"
   cat "${exclude_list}"
-  echo "--------"
+  echo -e "--------\n"
 
   # Create batch schedule.
   schedule_file="/etc/cron.d/easyclamav"
@@ -204,9 +204,9 @@ if [[ ${EASYCLAMAV_STATUS} != "stop" ]]; then
       >"${schedule_file}" || exit ${?}
   echo "--------"
   cat "${schedule_file}"
-  echo "--------"
+  echo -e "--------\n"
 
-  echo -e "\nCompleted."
+  echo "Completed."
   exit 0
 fi
 
