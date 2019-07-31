@@ -67,14 +67,14 @@ function get_system_proxy() {
   do
     if [[ ${proxy_env} =~ : ]]; then
       echo ${proxy_env}
-      exit 0
+      return 0
     fi
   done
 
   proxy_env=$(grep '^proxy=' /etc/yum.conf 2>/dev/null | sed -e 's|^proxy=\(.*\)$|\1|')
   if [[ ${proxy_env} =~ : ]]; then
     echo ${proxy_env}
-    exit 0
+    return 0
   fi
 
   return 0
