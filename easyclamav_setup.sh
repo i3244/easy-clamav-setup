@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# @(#) easyclamav_setup.sh ver.0.1.6 2019.07.25
+# @(#) easyclamav_setup.sh ver.0.1.7 2019.07.31
 # @author i3244
 #
 # Description:
@@ -58,9 +58,32 @@ function set_local_db_url() {
 }
 
 # *****************************************************************************
+# Get proxy settings on the system.
+function get_system_proxy() {
+
+  local proxy_env=
+
+  for proxy_env in "${http_proxy}" "${HTTP_PROXY}"
+  do
+    if [[ ${proxy_env} =~ : ]]; then
+      echo ${proxy_env}
+      exit 0
+    fi
+  done
+
+  proxy_env=$(grep '^proxy=' /etc/yum.conf 2>/dev/null | sed -e 's|^proxy=\(.*\)$|\1|')
+  if [[ ${proxy_env} =~ : ]]; then
+    echo ${proxy_env}
+    exit 0
+  fi
+
+  return 0
+}
+
+# *****************************************************************************
 # Set proxy authentication settings to the configuration file.
 # $1  configuration file
-# $2  HTTP_PROXY environment
+# $2  http_proxy environment
 function set_proxy_settings() {
   echo "Entered: ${FUNCNAME[0]}(${*})"
 
@@ -72,11 +95,12 @@ function set_proxy_settings() {
   local proxy_pass=
 
   if [[ "${proxy_env}" != "" ]]; then
-    proxy_env=${proxy_env/http:///} # Remove 'http://'.
-    proxy_env=${proxy_env////}      # Remove all '/'.
+    proxy_env=${proxy_env/http:\/\//}   # Remove 'http://'.
+    proxy_env=${proxy_env/https:\/\//}  # Remove 'https://'.
+    proxy_env=${proxy_env////}          # Remove all '/'.
 
-    proxy_port=${proxy_env##*:}     # Get string (port) right than the last ':'
-    proxy_env=${proxy_env%:*}       # Remove the last ':' and right string.
+    proxy_port=${proxy_env##*:} # Get string (port) right than the last ':'
+    proxy_env=${proxy_env%:*}   # Remove the last ':' and right string.
 
     if [[ ${proxy_env} =~ @ ]]; then
       # When '@' exists, get server, user and password.
@@ -171,7 +195,7 @@ if [[ ${EASYCLAMAV_STATUS} != "stop" ]]; then
   # Set proxy authentication settings to the configuration file.
   set_proxy_settings \
       "/etc/freshclam.conf" \
-      "${HTTP_PROXY}" || exit ${?}
+      "$(get_system_proxy)" || exit ${?}
 
   # Set SELinux boolean to on.
   set_selinux_bool $(getenforce) antivirus_can_scan_system  || exit ${?}
