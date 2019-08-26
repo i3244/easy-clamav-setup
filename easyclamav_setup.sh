@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# @(#) easyclamav_setup.sh ver.0.1.7 2019.07.31
+# @(#) easyclamav_setup.sh ver.0.1.8 2019.08.26
 # @author i3244
 #
 # Description:
@@ -175,9 +175,9 @@ function set_selinux_bool() {
 # *****************************************************************************
 # Entry point
 
-if [[ ${EASYCLAMAV_STATUS} != "stop" ]]; then
+if [[ "${BASH_SOURCE}" == "${0}" ]]; then
 
-  cd $(dirname "${0}")
+  cd "$(dirname "${0}")"
 
   source easyclamav.conf || exit ${?}
 

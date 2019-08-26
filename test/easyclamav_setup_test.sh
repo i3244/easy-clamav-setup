@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# @(#) easyclamav_setup_test.sh ver.0.1.5 2019.07.24
+# @(#) easyclamav_setup_test.sh ver.0.1.8 2019.08.26
 # @author i3244
 
 # *****************************************************************************
@@ -287,11 +287,8 @@ function test_set_selinux_bool_antivirus_use_jit() {
 # *****************************************************************************
 # Entry point
 
-cd $(dirname "${0}")
-
 source ../easyclamav.conf || exit ${?}
 
-readonly EASYCLAMAV_STATUS=stop
 source ../easyclamav_setup.sh || exit ${?}
 
 # Load and run shUnit2.
